@@ -1,15 +1,13 @@
+import App, { LatLng } from './App';
 import './style.scss'
 import {XMLParser} from "fast-xml-parser";
 
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>Hello!</div>
+  <section class="p-section-hero"></section>
 `
 
-interface LatLng{
-  lat:number,
-  lng:number,
-}
+
 
 async function mainAsync(){
   const xmlData = await fetch("./P34-14_01.xml").then((res)=>res.text());
@@ -25,21 +23,9 @@ async function mainAsync(){
       lng:parseFloat(lng),
     }
   });
-  console.log(points);
-  const min:LatLng=points.reduce((a,b)=>{
-    return {
-      lat:Math.min(a.lat,b.lat),
-      lng:Math.min(a.lng,b.lng),
-    }
-  })
-  console.log(min);
-  const max:LatLng=points.reduce((a,b)=>{
-    return {
-      lat:Math.max(a.lat,b.lat),
-      lng:Math.max(a.lng,b.lng),
-    }
-  })
-  console.log(max);
+  // console.log(points);
+  (window as any).app=new App(points);
+
 
   
 }
