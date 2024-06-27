@@ -6,6 +6,12 @@ export interface LatLng{
   lng:number,
 }
 
+interface DrawingSettings{
+  canvasSize:p5.Vector;
+  padding:p5.Vector;
+  drawingSize:p5.Vector;
+  pointSize:number;
+}
 
 export default class App{
   p:p5;
@@ -60,31 +66,58 @@ export default class App{
     p.resizeCanvas(width,height);
 
   }
-  convertLatLngToVector(latlng:LatLng):p5.Vector{
+  onDraw(){
     const {p}=this;
-    // const sizeLatLng={
-    //   lat:this.max.lat - this.min.lat,
-    //   lng:this.max.lng - this.min.lng,
-    // };
-    const sizeCanvas=new p5.Vector(
+    // p.rect(0,0,100,100);
+    const {pointSize}=this.calcDrawingSettings();
+    for(let point of this.points){
+      const v=this.convertLatLngToVector(point);
+      p.circle(v.x,v.y,pointSize);
+    }
+
+  }
+  convertLatLngToVector(latlng:LatLng):p5.Vector{
+    const {padding,drawingSize}=this.calcDrawingSettings();
+
+    const drawingAspectRatio = drawingSize.x / drawingSize.y;
+    const latDiff = this.max.lat - this.min.lat;
+    const lngDiff = this.max.lng - this.min.lng;
+    const latLngAspectRatio = lngDiff / latDiff;
+
+    let drawingOffsetX = padding.x;
+    let drawingOffsetY = padding.y;
+    let scale;
+    if (drawingAspectRatio > latLngAspectRatio) {
+      // Fit to height
+      scale = drawingSize.y / latDiff;
+      drawingOffsetX += (drawingSize.x - lngDiff * scale) / 2;
+    } else {
+      // Fit to width
+      scale = drawingSize.x / lngDiff;
+      drawingOffsetY += (drawingSize.y - latDiff * scale) / 2;
+    }
+    
+    const x = drawingOffsetX + (latlng.lng - this.min.lng) * scale;
+    const y = drawingOffsetY + (this.max.lat - latlng.lat) * scale;
+    const v=new p5.Vector(x,y);
+    return v;
+  }
+  calcDrawingSettings():DrawingSettings{
+    const {p}=this;
+    const canvasSize=new p5.Vector(
       p.width,
       p.height
     );
     const padding=new p5.Vector(50,50);
-    // ひとまず単純にマッピング、アスペクト比は変わる
-
-    const x=p.map(latlng.lng,this.min.lng,this.max.lng,padding.x,sizeCanvas.x-padding.x);
-    const y=p.map(latlng.lat,this.min.lat,this.max.lat,sizeCanvas.y-padding.y,padding.y);
-    const v=new p5.Vector(x,y);
-    return v;
-  }
-  
-  onDraw(){
-    const {p}=this;
-    // p.rect(0,0,100,100);
-    for(let point of this.points){
-      const v=this.convertLatLngToVector(point);
-      p.circle(v.x,v.y,10);
+    const drawingSize=canvasSize.copy().sub(padding.copy().mult(2));
+    const min=Math.min(drawingSize.x,drawingSize.y);
+    const pointSize=min/50;
+    return {
+      canvasSize,
+      padding,
+      drawingSize,
+      pointSize,
+    
     }
 
   }
