@@ -15,7 +15,6 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
-    "-": "^0.0.1",
     "@types/stats.js": "^0.17.3",
     "D": "^1.0.0",
     "fast-xml-parser": "^4.4.0",
