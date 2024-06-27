@@ -1,4 +1,5 @@
 import p5 from "p5";
+import Stats from "stats.js";
 import { getElementSize } from "./dom_utils";
 
 export interface LatLng{
@@ -17,6 +18,7 @@ interface DrawingSettings{
 export default class App{
   p:p5;
   sectionElement:HTMLElement;
+  stats:Stats;
   points:LatLng[];
   min:LatLng;
   max:LatLng;
@@ -26,6 +28,10 @@ export default class App{
       throw new Error("sectionElement is null");
     }
     this.sectionElement=sectionElement;
+    this.stats=new Stats();
+    this.stats.dom.style.top="0px";
+    document.body.appendChild( this.stats.dom );
+
     this.points=points;
     this.min=points.reduce((a,b)=>{
       return {
@@ -48,9 +54,9 @@ export default class App{
         this.onWindowResized();
       }
       p.draw=()=>{
-        // this.stats.begin();
+        this.stats.begin();
         this.onDraw();
-        // this.stats.end();
+        this.stats.end();
       };
     };
     this.p=new p5(sketch,sectionElement);
@@ -75,6 +81,8 @@ export default class App{
 
     const color=p.color(255*0.5);
 
+    const vList=this.points.map((point)=>this.convertLatLngToVector(point));
+
     // p.push();
     // p.noStroke();
     // p.fill(color);
@@ -96,14 +104,14 @@ export default class App{
     const drawingContext=p.drawingContext as CanvasRenderingContext2D;
     drawingContext.setLineDash(lineDash);
     drawingContext.lineDashOffset=lineDashOffset;
-    for(let pointFrom of this.points){
-      for(let pointTo of this.points){
-        if(pointFrom===pointTo){
+    const vDiff=new p5.Vector();
+    for(let vFrom of vList){
+      for(let vTo of vList){
+        if(vFrom===vTo){
           continue;
         }
-        const vFrom=this.convertLatLngToVector(pointFrom);
-        const vTo=this.convertLatLngToVector(pointTo);
-        const vDiff=vTo.copy().sub(vFrom);
+        vDiff.x=vTo.x-vFrom.x;
+        vDiff.y=vTo.y-vFrom.y;
         if(vDiff.magSq()<pointSize*pointSize*10){
           p.line(vFrom.x,vFrom.y,vTo.x,vTo.y);
         }
