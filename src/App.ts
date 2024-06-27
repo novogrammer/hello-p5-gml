@@ -11,6 +11,7 @@ interface DrawingSettings{
   padding:p5.Vector;
   drawingSize:p5.Vector;
   pointSize:number;
+  lineWidth:number;
 }
 
 export default class App{
@@ -68,12 +69,48 @@ export default class App{
   }
   onDraw(){
     const {p}=this;
+    p.background(0,0,0);
     // p.rect(0,0,100,100);
-    const {pointSize}=this.calcDrawingSettings();
-    for(let point of this.points){
-      const v=this.convertLatLngToVector(point);
-      p.circle(v.x,v.y,pointSize);
+    const {pointSize,lineWidth}=this.calcDrawingSettings();
+
+    const color=p.color(255*0.5);
+
+    // p.push();
+    // p.noStroke();
+    // p.fill(color);
+    // for(let point of this.points){
+    //   const v=this.convertLatLngToVector(point);
+    //   p.circle(v.x,v.y,pointSize);
+    // }
+    // p.pop();
+    // 双方向に描画する
+
+    const lineDash=[pointSize*0.1,pointSize*0.9];
+    const r=(performance.now()/1000)%1;
+    const lineDashOffset=pointSize*r;
+
+    p.push();
+    p.blendMode(p.ADD);
+    p.stroke(color);
+    p.strokeWeight(lineWidth);
+    const drawingContext=p.drawingContext as CanvasRenderingContext2D;
+    drawingContext.setLineDash(lineDash);
+    drawingContext.lineDashOffset=lineDashOffset;
+    for(let pointFrom of this.points){
+      for(let pointTo of this.points){
+        if(pointFrom===pointTo){
+          continue;
+        }
+        const vFrom=this.convertLatLngToVector(pointFrom);
+        const vTo=this.convertLatLngToVector(pointTo);
+        const vDiff=vTo.copy().sub(vFrom);
+        if(vDiff.magSq()<pointSize*pointSize*10){
+          p.line(vFrom.x,vFrom.y,vTo.x,vTo.y);
+        }
+
+      }
     }
+    p.pop();
 
   }
   convertLatLngToVector(latlng:LatLng):p5.Vector{
@@ -111,13 +148,14 @@ export default class App{
     const padding=new p5.Vector(50,50);
     const drawingSize=canvasSize.copy().sub(padding.copy().mult(2));
     const min=Math.min(drawingSize.x,drawingSize.y);
-    const pointSize=min/50;
+    const lineWidth=min/400;
+    const pointSize=lineWidth*10;
     return {
       canvasSize,
       padding,
       drawingSize,
       pointSize,
-    
+      lineWidth,
     }
 
   }
