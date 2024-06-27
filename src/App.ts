@@ -52,7 +52,6 @@ export default class App{
   onSetup(){
     const {width,height} = getElementSize(this.sectionElement);
     const {p}=this;
-
     p.createCanvas(width,height);
   }
   onWindowResized(){
@@ -61,9 +60,32 @@ export default class App{
     p.resizeCanvas(width,height);
 
   }
+  convertLatLngToVector(latlng:LatLng):p5.Vector{
+    const {p}=this;
+    // const sizeLatLng={
+    //   lat:this.max.lat - this.min.lat,
+    //   lng:this.max.lng - this.min.lng,
+    // };
+    const sizeCanvas=new p5.Vector(
+      p.width,
+      p.height
+    );
+    const padding=new p5.Vector(50,50);
+    // ひとまず単純にマッピング、アスペクト比は変わる
+
+    const x=p.map(latlng.lng,this.min.lng,this.max.lng,padding.x,sizeCanvas.x-padding.x);
+    const y=p.map(latlng.lat,this.min.lat,this.max.lat,sizeCanvas.y-padding.y,padding.y);
+    const v=new p5.Vector(x,y);
+    return v;
+  }
+  
   onDraw(){
     const {p}=this;
-    p.rect(0,0,100,100);
+    // p.rect(0,0,100,100);
+    for(let point of this.points){
+      const v=this.convertLatLngToVector(point);
+      p.circle(v.x,v.y,10);
+    }
 
   }
 }
