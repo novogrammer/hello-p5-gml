@@ -112,7 +112,7 @@ export default class App{
         }
         vDiff.x=vTo.x-vFrom.x;
         vDiff.y=vTo.y-vFrom.y;
-        if(vDiff.magSq()<pointSize*pointSize*5){
+        if(vDiff.magSq()<pointSize*pointSize*2.3*2.3){
           p.line(vFrom.x,vFrom.y,vTo.x,vTo.y);
         }
 
